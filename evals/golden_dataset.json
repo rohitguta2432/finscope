@@ -1,0 +1,116 @@
+[
+  {
+    "id": "overlap_large_cap_pair",
+    "description": "Two large-cap funds with >40% top-holdings overlap",
+    "portfolio": [
+      {"instrument": "Mirae Asset Large Cap Fund", "type": "equity_mf", "amount": 200000, "fund_id": "mirae_large_cap", "expense_ratio": 0.54, "buy_date": "2022-03-15"},
+      {"instrument": "Axis Bluechip Fund", "type": "equity_mf", "amount": 200000, "fund_id": "axis_bluechip", "expense_ratio": 0.42, "buy_date": "2023-01-20"},
+      {"instrument": "FD HDFC Bank", "type": "fd", "amount": 100000, "buy_date": null}
+    ],
+    "params": {"age": 35, "risk": "moderate", "monthly_expenses": null},
+    "expect": {
+      "overlap_flagged": true,
+      "overlap_pair": ["Mirae Asset Large Cap Fund", "Axis Bluechip Fund"],
+      "overlap_pct_min": 40.0,
+      "tax_flags_min": 0,
+      "disclaimer_present": true,
+      "compliance_violations": 0
+    }
+  },
+  {
+    "id": "debt_stcg_flag",
+    "description": "Debt fund held <3 years triggers STCG flag",
+    "portfolio": [
+      {"instrument": "SBI Debt Fund", "type": "debt_mf", "amount": 150000, "fund_id": "sbi_debt", "expense_ratio": 0.85, "buy_date": "2024-08-01"},
+      {"instrument": "Cash Savings", "type": "cash", "amount": 50000, "buy_date": null}
+    ],
+    "params": {"age": 40, "risk": "moderate", "monthly_expenses": null},
+    "expect": {
+      "debt_stcg_flagged": true,
+      "disclaimer_present": true,
+      "compliance_violations": 0
+    }
+  },
+  {
+    "id": "concentration_single_stock",
+    "description": "Single stock >20% of portfolio triggers concentration flag",
+    "portfolio": [
+      {"instrument": "Reliance Industries", "type": "stock", "amount": 300000, "buy_date": "2023-01-01"},
+      {"instrument": "Mirae Asset Large Cap Fund", "type": "equity_mf", "amount": 100000, "fund_id": "mirae_large_cap", "expense_ratio": 0.54, "buy_date": "2022-06-01"},
+      {"instrument": "FD HDFC Bank", "type": "fd", "amount": 100000, "buy_date": null}
+    ],
+    "params": {"age": 35, "risk": "moderate", "monthly_expenses": null},
+    "expect": {
+      "concentration_flagged": true,
+      "concentration_instrument": "Reliance Industries",
+      "concentration_pct_min": 20.0,
+      "disclaimer_present": true,
+      "compliance_violations": 0
+    }
+  },
+  {
+    "id": "allocation_drift_overweight_equity",
+    "description": "Heavy equity allocation for age 55 triggers drift flag",
+    "portfolio": [
+      {"instrument": "Mirae Asset Large Cap Fund", "type": "equity_mf", "amount": 400000, "fund_id": "mirae_large_cap", "expense_ratio": 0.54, "buy_date": "2021-01-10"},
+      {"instrument": "Axis Bluechip Fund", "type": "equity_mf", "amount": 350000, "fund_id": "axis_bluechip", "expense_ratio": 0.42, "buy_date": "2021-06-01"},
+      {"instrument": "FD HDFC Bank", "type": "fd", "amount": 50000, "buy_date": null}
+    ],
+    "params": {"age": 55, "risk": "moderate", "monthly_expenses": null},
+    "expect": {
+      "allocation_flagged": true,
+      "equity_pct_min": 80.0,
+      "drift_direction": "overweight",
+      "disclaimer_present": true,
+      "compliance_violations": 0
+    }
+  },
+  {
+    "id": "high_expense_ratio",
+    "description": "Mid-cap fund with expense ratio above category median flagged",
+    "portfolio": [
+      {"instrument": "HDFC Mid Cap Opportunities", "type": "equity_mf", "amount": 200000, "fund_id": "hdfc_midcap", "expense_ratio": 1.62, "buy_date": "2023-06-10"},
+      {"instrument": "Cash Savings", "type": "cash", "amount": 50000, "buy_date": null}
+    ],
+    "params": {"age": 35, "risk": "moderate", "monthly_expenses": null},
+    "expect": {
+      "expense_flagged": true,
+      "expense_instrument": "HDFC Mid Cap Opportunities",
+      "annual_drag_inr_min": 500,
+      "disclaimer_present": true,
+      "compliance_violations": 0
+    }
+  },
+  {
+    "id": "equity_stcg_flag",
+    "description": "Equity stock held <1 year triggers STCG flag",
+    "portfolio": [
+      {"instrument": "Tata Steel", "type": "stock", "amount": 80000, "buy_date": "2025-06-01"},
+      {"instrument": "FD HDFC Bank", "type": "fd", "amount": 120000, "buy_date": null}
+    ],
+    "params": {"age": 35, "risk": "moderate", "monthly_expenses": null},
+    "today": "2026-01-01",
+    "expect": {
+      "equity_stcg_flagged": true,
+      "disclaimer_present": true,
+      "compliance_violations": 0
+    }
+  },
+  {
+    "id": "clean_portfolio_no_flags",
+    "description": "Well-diversified, age-appropriate portfolio with no significant flags",
+    "portfolio": [
+      {"instrument": "Mirae Asset Large Cap Fund", "type": "equity_mf", "amount": 150000, "fund_id": "mirae_large_cap", "expense_ratio": 0.54, "buy_date": "2022-01-01"},
+      {"instrument": "HDFC Mid Cap Opportunities", "type": "equity_mf", "amount": 80000, "fund_id": "hdfc_midcap", "expense_ratio": 1.10, "buy_date": "2022-06-01"},
+      {"instrument": "SBI Debt Fund", "type": "debt_mf", "amount": 100000, "fund_id": "sbi_debt", "expense_ratio": 0.40, "buy_date": "2021-01-01"},
+      {"instrument": "Gold ETF", "type": "gold", "amount": 40000, "buy_date": "2022-01-01"},
+      {"instrument": "Cash Savings", "type": "cash", "amount": 80000, "buy_date": null}
+    ],
+    "params": {"age": 35, "risk": "moderate", "monthly_expenses": null},
+    "expect": {
+      "overall_score_min": 50,
+      "disclaimer_present": true,
+      "compliance_violations": 0
+    }
+  }
+]

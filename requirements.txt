@@ -1,0 +1,7 @@
+# Core — required for real LLM path (LLM_PROVIDER=openai)
+openai>=1.30.0
+
+# MCP — required for python -m finscope.mcp_server
+mcp>=1.0.0
+
+# The eval gate (python -m evals.run) uses only stdlib — no extra deps needed.

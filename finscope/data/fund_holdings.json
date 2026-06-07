@@ -1,0 +1,27 @@
+{
+  "mirae_large_cap": {
+    "name": "Mirae Asset Large Cap Fund",
+    "category": "equity_large_cap",
+    "top_holdings": ["Reliance Industries", "HDFC Bank", "Infosys", "ICICI Bank", "TCS", "L&T", "Kotak Mahindra Bank", "Axis Bank", "SBI", "HUL"]
+  },
+  "axis_bluechip": {
+    "name": "Axis Bluechip Fund",
+    "category": "equity_large_cap",
+    "top_holdings": ["Reliance Industries", "HDFC Bank", "Infosys", "ICICI Bank", "TCS", "Bajaj Finance", "HUL", "Asian Paints", "Maruti Suzuki", "Titan"]
+  },
+  "hdfc_midcap": {
+    "name": "HDFC Mid Cap Opportunities",
+    "category": "equity_mid_cap",
+    "top_holdings": ["Voltas", "Coforge", "Persistent Systems", "Mphasis", "Ashok Leyland", "Federal Bank", "Crompton Greaves", "PI Industries", "Trent", "V-Guard"]
+  },
+  "sbi_debt": {
+    "name": "SBI Debt Fund",
+    "category": "debt_short_term",
+    "top_holdings": []
+  },
+  "icici_large_cap": {
+    "name": "ICICI Prudential Bluechip Fund",
+    "category": "equity_large_cap",
+    "top_holdings": ["Reliance Industries", "HDFC Bank", "Infosys", "ICICI Bank", "TCS", "L&T", "Bharti Airtel", "Kotak Mahindra Bank", "SBI", "HUL"]
+  }
+}

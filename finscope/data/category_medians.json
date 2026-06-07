@@ -1,0 +1,15 @@
+{
+  "equity_large_cap": 0.85,
+  "equity_mid_cap": 1.20,
+  "equity_small_cap": 1.50,
+  "equity_elss": 1.10,
+  "debt_short_term": 0.40,
+  "debt_medium_term": 0.55,
+  "debt_long_term": 0.65,
+  "debt_liquid": 0.20,
+  "hybrid_aggressive": 0.95,
+  "hybrid_balanced": 0.80,
+  "gold": 0.55,
+  "index_large_cap": 0.20,
+  "unknown": 1.00
+}
