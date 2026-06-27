@@ -23,6 +23,7 @@ from .tools import (
     DISCLAIMER,
     analyze_allocation,
     detect_overlap,
+    detect_regular_plans,
     expense_leakage,
     find_tax_leakage,
     generate_report,
@@ -39,6 +40,7 @@ class AnalysisResult:
     overlap: dict[str, Any]
     tax: dict[str, Any]
     expense: dict[str, Any]
+    regular_plans: dict[str, Any]
     health: dict[str, Any]
     narrative: str
     report_path: str
@@ -54,6 +56,7 @@ class AnalysisResult:
             + self.overlap.get("flags", [])
             + self.tax.get("flags", [])
             + self.expense.get("flags", [])
+            + self.regular_plans.get("flags", [])
             + self.health.get("concentration_flags", [])
             + self.health.get("emergency_flags", [])
         )
@@ -89,6 +92,7 @@ class Agent:
         overlap = detect_overlap(holdings)
         tax = find_tax_leakage(holdings, today=self.today)
         expense = expense_leakage(holdings)
+        regular_plans = detect_regular_plans(holdings)
         health = score_health(
             holdings,
             allocation,
@@ -106,11 +110,13 @@ class Agent:
             "drift_pp": allocation.get("drift_pp", 0),
             "flagged_overlap_pairs": sum(1 for p in overlap.get("pairs", []) if p["flagged"]),
             "annual_drag_inr": expense.get("total_annual_drag_inr", 0),
+            "commission_drag_inr": regular_plans.get("total_commission_drag_inr", 0),
             "total_flags": len(
                 allocation.get("flags", [])
                 + overlap.get("flags", [])
                 + tax.get("flags", [])
                 + expense.get("flags", [])
+                + regular_plans.get("flags", [])
                 + health.get("concentration_flags", [])
                 + health.get("emergency_flags", [])
             ),
@@ -120,7 +126,8 @@ class Agent:
         # Step 4: report
         report_path = str(self.out_dir / "report.md")
         report_text = generate_report(
-            holdings, allocation, overlap, tax, expense, health, narrative, report_path
+            holdings, allocation, overlap, tax, expense, health, narrative, report_path,
+            regular_plans_result=regular_plans,
         )
 
         return AnalysisResult(
@@ -129,6 +136,7 @@ class Agent:
             overlap=overlap,
             tax=tax,
             expense=expense,
+            regular_plans=regular_plans,
             health=health,
             narrative=narrative,
             report_path=report_path,

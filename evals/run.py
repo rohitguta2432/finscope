@@ -34,6 +34,7 @@ from finscope.tools import (
     DISCLAIMER,
     analyze_allocation,
     detect_overlap,
+    detect_regular_plans,
     expense_leakage,
     find_tax_leakage,
     parse_holdings,
@@ -85,6 +86,7 @@ def _run_case(case: dict[str, Any], llm: Any) -> dict[str, Any]:
     overlap = detect_overlap(holdings)
     tax = find_tax_leakage(holdings, today=today)
     expense = expense_leakage(holdings)
+    regular = detect_regular_plans(holdings)
     health = score_health(
         holdings, allocation, overlap, tax, expense,
         monthly_expenses=monthly_expenses,
@@ -96,11 +98,13 @@ def _run_case(case: dict[str, Any], llm: Any) -> dict[str, Any]:
         "drift_pp": allocation.get("drift_pp", 0),
         "flagged_overlap_pairs": sum(1 for p in overlap.get("pairs", []) if p["flagged"]),
         "annual_drag_inr": expense.get("total_annual_drag_inr", 0),
+        "commission_drag_inr": regular.get("total_commission_drag_inr", 0),
         "total_flags": len(
             allocation.get("flags", [])
             + overlap.get("flags", [])
             + tax.get("flags", [])
             + expense.get("flags", [])
+            + regular.get("flags", [])
             + health.get("concentration_flags", [])
             + health.get("emergency_flags", [])
         ),
@@ -110,7 +114,8 @@ def _run_case(case: dict[str, Any], llm: Any) -> dict[str, Any]:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = str(OUT_DIR / f"{case['id']}.md")
     report_text = generate_report(
-        holdings, allocation, overlap, tax, expense, health, narrative, out_path
+        holdings, allocation, overlap, tax, expense, health, narrative, out_path,
+        regular_plans_result=regular,
     )
 
     return {
@@ -118,6 +123,7 @@ def _run_case(case: dict[str, Any], llm: Any) -> dict[str, Any]:
         "overlap": overlap,
         "tax": tax,
         "expense": expense,
+        "regular": regular,
         "health": health,
         "narrative": narrative,
         "report_text": report_text,
@@ -148,10 +154,18 @@ def _score_flags(result: dict[str, Any], expect: dict[str, Any]) -> tuple[int, i
     overlap = result["overlap"]
     tax = result["tax"]
     expense = result["expense"]
+    regular = result.get("regular", {"flags": []})
     health = result["health"]
 
     expected = 0
     hit = 0
+
+    # regular_plan_flagged
+    if "regular_plan_flagged" in expect:
+        expected += 1
+        found = len(regular.get("flags", [])) > 0
+        if found == expect["regular_plan_flagged"]:
+            hit += 1
 
     # overlap_flagged
     if "overlap_flagged" in expect:

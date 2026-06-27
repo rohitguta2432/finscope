@@ -40,8 +40,9 @@ A transparent **analysis pipeline** (no agent framework — the logic is readabl
 3. **Detect overlap** — pairwise Jaccard overlap between mutual fund top holdings.
 4. **Flag tax leakage** — debt MF held <3yr (STCG), equity <1yr (STCG), unused LTCG headroom.
 5. **Flag expense leakage** — funds above category-median expense ratio; ₹ annual drag.
-6. **Score health** — per-dimension 0-100 + overall; concentration >20%; emergency-fund gap.
-7. **Generate report** — plain-English markdown to `out/report.md` with disclaimer + RIA questions.
+6. **Detect Regular plans** — flags funds in Regular distributor plans vs Direct plans; estimates annual commission drag (~0.5–0.9% of corpus). Detection uses an optional `plan_type` CSV column or 'Regular'/'Direct' keywords in the fund name.
+7. **Score health** — per-dimension 0-100 + overall; concentration >20%; emergency-fund gap.
+8. **Generate report** — plain-English markdown to `out/report.md` with disclaimer + RIA questions.
 
 All numbers come from deterministic Python analysers. The LLM **only phrases** the narrative.
 
@@ -49,7 +50,7 @@ All numbers come from deterministic Python analysers. The LLM **only phrases** t
 
 ## Eval results — the headline
 
-Run on 7 golden-dataset cases with a CI-style gate (`python -m evals.run`):
+Run on 8 golden-dataset cases with a CI-style gate (`python -m evals.run`):
 
 | Metric | Score | Gate |
 |---|---|---|
@@ -59,8 +60,8 @@ Run on 7 golden-dataset cases with a CI-style gate (`python -m evals.run`):
 | Compliance violations | **0** | = 0 |
 
 *Cases cover: high-overlap fund pair, debt STCG flag, concentrated single stock,
-allocation drift at age 55, above-median expense ratio, equity STCG, and a
-clean portfolio baseline. Suite exits non-zero on any regression.*
+allocation drift at age 55, above-median expense ratio, equity STCG, Regular plan
+commission flag, and a clean portfolio baseline. Suite exits non-zero on any regression.*
 
 ---
 
@@ -72,11 +73,12 @@ holdings CSV
      ▼
  parse_holdings()
      │
-     ├──► analyze_allocation()  ← age, risk params
-     ├──► detect_overlap()      ← fund_holdings.json
-     ├──► find_tax_leakage()    ← date math, LTCG rules
-     ├──► expense_leakage()     ← category_medians.json
-     └──► score_health()        ← per-dimension 0-100
+     ├──► analyze_allocation()    ← age, risk params
+     ├──► detect_overlap()        ← fund_holdings.json
+     ├──► find_tax_leakage()      ← date math, LTCG rules
+     ├──► expense_leakage()       ← category_medians.json
+     ├──► detect_regular_plans()  ← plan_type field / fund name keywords
+     └──► score_health()          ← per-dimension 0-100
                │
                ▼
           LLM.generate_narrative()

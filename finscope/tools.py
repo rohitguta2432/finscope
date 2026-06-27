@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import json
 import math
+import re
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -46,6 +47,23 @@ BANNED_PHRASES = [
     "recommend selling",
 ]
 
+# Typical commission premium that Regular plans carry over Direct plans.
+# Equity funds ~0.9 pp; debt funds ~0.5 pp — illustrative estimates only.
+_REGULAR_PREMIUM_PCT: dict[str, float] = {
+    "equity_mf": 0.9,
+    "debt_mf": 0.5,
+}
+
+
+def _infer_plan_type(name: str) -> str | None:
+    """Return 'regular' or 'direct' if detectable from fund name; else None."""
+    lower = name.lower()
+    if "regular" in lower:
+        return "regular"
+    if "direct" in lower:
+        return "direct"
+    return None
+
 
 def parse_holdings(csv_path: str) -> list[dict[str, Any]]:
     """Parse a holdings CSV and normalise each row.
@@ -71,6 +89,7 @@ def parse_holdings(csv_path: str) -> list[dict[str, Any]]:
                 "buy_date": _parse_date(raw.get("buy_date", "")),
                 "expense_ratio": float(raw.get("expense_ratio") or 0) if raw.get("expense_ratio") else None,
                 "fund_id": raw.get("fund_id", "").strip() or None,
+                "plan_type": raw.get("plan_type", "").strip().lower() or None,
             }
             rows.append(row)
     return rows
@@ -316,6 +335,59 @@ def expense_leakage(holdings: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def detect_regular_plans(holdings: list[dict[str, Any]]) -> dict[str, Any]:
+    """Flag mutual fund holdings that appear to be Regular plans rather than Direct plans.
+
+    Regular plans embed a distributor commission (~0.5–1.5 pp above the Direct
+    plan's expense ratio), reducing long-term returns. Detection uses an explicit
+    plan_type field in the CSV (values: 'regular' | 'direct') or falls back to
+    detecting 'Regular'/'Direct' in the fund name.
+
+    COMPLIANCE: flags issues and explains them. Never recommends switching or selling.
+    """
+    funds = []
+    flags = []
+    total_commission_drag = 0.0
+
+    for h in holdings:
+        if h["type"] not in ("equity_mf", "debt_mf"):
+            continue
+        plan_type = h.get("plan_type") or _infer_plan_type(h["instrument"])
+        if plan_type is None:
+            continue
+
+        is_regular = plan_type == "regular"
+        premium_pct = _REGULAR_PREMIUM_PCT.get(h["type"], 0.9)
+        annual_drag = round(h["amount"] * premium_pct / 100, 2) if is_regular else 0.0
+        total_commission_drag += annual_drag
+
+        funds.append({
+            "instrument": h["instrument"],
+            "type": h["type"],
+            "plan_type": plan_type,
+            "amount": h["amount"],
+            "estimated_commission_pct": premium_pct if is_regular else 0.0,
+            "estimated_annual_drag_inr": annual_drag,
+            "flagged": is_regular,
+        })
+
+        if is_regular:
+            flags.append(
+                f"Regular plan flag: {h['instrument']} appears to be a Regular plan. "
+                f"Regular plans embed a distributor commission "
+                f"(~{premium_pct:.1f}% above the Direct plan's expense ratio). "
+                f"Estimated annual drag on ₹{int(h['amount']):,} corpus ≈ ₹{int(annual_drag):,}/yr. "
+                f"Question to ask a SEBI RIA: 'Am I in a Regular plan? Is a Direct plan "
+                f"of the same fund available and appropriate for my situation?'"
+            )
+
+    return {
+        "funds": funds,
+        "total_commission_drag_inr": round(total_commission_drag, 2),
+        "flags": flags,
+    }
+
+
 def score_health(
     holdings: list[dict[str, Any]],
     allocation_result: dict[str, Any],
@@ -421,6 +493,7 @@ def generate_report(
     health_result: dict[str, Any],
     narrative: str,
     out_path: str,
+    regular_plans_result: dict[str, Any] | None = None,
 ) -> str:
     """Write a markdown report to out_path and return it as a string.
 
@@ -439,6 +512,7 @@ def generate_report(
         + overlap_result.get("flags", [])
         + tax_result.get("flags", [])
         + expense_result.get("flags", [])
+        + (regular_plans_result.get("flags", []) if regular_plans_result else [])
         + health_result.get("concentration_flags", [])
         + health_result.get("emergency_flags", [])
     )
@@ -519,6 +593,27 @@ def generate_report(
             f"Estimated unused LTCG exemption this year: **₹{int(ltcg_headroom):,}**",
             f"",
         ]
+
+    # Regular plan commission leakage
+    if regular_plans_result:
+        commission_drag = regular_plans_result.get("total_commission_drag_inr", 0)
+        regular_funds = [f for f in regular_plans_result.get("funds", []) if f["flagged"]]
+        if commission_drag > 0 and regular_funds:
+            lines += [
+                f"### Regular Plan Commission Leakage",
+                f"",
+                f"Estimated annual distributor commission across Regular plan holdings: "
+                f"**₹{int(commission_drag):,}/yr**",
+                f"",
+                f"| Fund | Corpus | Est. Commission/yr |",
+                f"|---|---|---|",
+            ]
+            for rf in regular_funds:
+                lines.append(
+                    f"| {rf['instrument']} | ₹{int(rf['amount']):,} "
+                    f"| ₹{int(rf['estimated_annual_drag_inr']):,} |"
+                )
+            lines.append(f"")
 
     lines += [
         f"---",

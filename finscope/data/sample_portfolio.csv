@@ -1,10 +1,10 @@
-instrument,type,amount,units,buy_date,expense_ratio,fund_id
-Mirae Asset Large Cap Fund,equity_mf,250000,1450.23,2022-03-15,0.54,mirae_large_cap
-Axis Bluechip Fund,equity_mf,200000,1200.10,2023-01-20,0.42,axis_bluechip
-HDFC Mid Cap Opportunities,equity_mf,150000,890.50,2023-06-10,1.62,hdfc_midcap
-SBI Debt Fund,debt_mf,100000,950.00,2024-08-01,0.85,sbi_debt
-Reliance Industries,stock,80000,45.00,2024-09-15,,
-Tata Steel,stock,30000,200.00,2025-01-10,,
-Gold ETF,gold,50000,12.50,2022-11-01,0.59,
-FD HDFC Bank,fd,120000,,,,
-Cash Savings,cash,40000,,,,
+instrument,type,amount,units,buy_date,expense_ratio,fund_id,plan_type
+Mirae Asset Large Cap Fund,equity_mf,250000,1450.23,2022-03-15,0.54,mirae_large_cap,direct
+Axis Bluechip Fund,equity_mf,200000,1200.10,2023-01-20,0.42,axis_bluechip,direct
+HDFC Mid Cap Opportunities - Regular Plan,equity_mf,150000,890.50,2023-06-10,1.62,hdfc_midcap,regular
+SBI Debt Fund,debt_mf,100000,950.00,2024-08-01,0.85,sbi_debt,
+Reliance Industries,stock,80000,45.00,2024-09-15,,,
+Tata Steel,stock,30000,200.00,2025-01-10,,,
+Gold ETF,gold,50000,12.50,2022-11-01,0.59,,
+FD HDFC Bank,fd,120000,,,,,
+Cash Savings,cash,40000,,,,,

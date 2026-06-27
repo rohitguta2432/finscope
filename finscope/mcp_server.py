@@ -29,7 +29,7 @@ from typing import Any
 def main() -> None:
     from mcp.server.fastmcp import FastMCP  # lazy import — not needed for evals
 
-    from .tools import detect_overlap, find_tax_leakage, parse_holdings, score_health
+    from .tools import detect_overlap, detect_regular_plans, find_tax_leakage, parse_holdings, score_health
     from .tools import analyze_allocation, expense_leakage
 
     mcp = FastMCP("finscope")
@@ -53,6 +53,19 @@ def main() -> None:
         """
         holdings = parse_holdings(csv_path)
         return find_tax_leakage(holdings, today=date.today())
+
+    @mcp.tool()
+    def mcp_detect_regular_plans(csv_path: str) -> dict[str, Any]:
+        """Detect Regular plan mutual fund holdings in a holdings CSV.
+
+        Regular plans embed a distributor commission (~0.5–1.5% above Direct plans).
+        Returns per-fund plan type, estimated annual commission drag in ₹, and flags.
+        Detection uses an explicit plan_type column (values: 'regular'|'direct') or
+        'Regular'/'Direct' keywords in the fund name as a fallback.
+        Educational output only — not investment advice.
+        """
+        holdings = parse_holdings(csv_path)
+        return detect_regular_plans(holdings)
 
     @mcp.tool()
     def mcp_score_health(

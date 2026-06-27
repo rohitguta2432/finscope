@@ -112,5 +112,20 @@
       "disclaimer_present": true,
       "compliance_violations": 0
     }
+  },
+  {
+    "id": "regular_plan_flag",
+    "description": "Fund with 'Regular Plan' in name is flagged for embedded distributor commission",
+    "portfolio": [
+      {"instrument": "HDFC Top 100 Fund - Regular Plan", "type": "equity_mf", "amount": 200000, "fund_id": "mirae_large_cap", "expense_ratio": 1.54, "buy_date": "2023-01-01"},
+      {"instrument": "SBI Bluechip Fund - Regular Plan", "type": "equity_mf", "amount": 150000, "fund_id": "axis_bluechip", "expense_ratio": 1.35, "buy_date": "2023-06-01"},
+      {"instrument": "Cash Savings", "type": "cash", "amount": 50000, "buy_date": null}
+    ],
+    "params": {"age": 35, "risk": "moderate", "monthly_expenses": null},
+    "expect": {
+      "regular_plan_flagged": true,
+      "disclaimer_present": true,
+      "compliance_violations": 0
+    }
   }
 ]
